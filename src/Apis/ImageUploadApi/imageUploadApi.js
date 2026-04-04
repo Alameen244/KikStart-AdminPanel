@@ -1,5 +1,5 @@
 import { axiosInstance } from "../../helper/helper";
-import { endpoints } from "../EndPoints/endpoints";
+import { endpoints } from "../EndPoints/imageEndpoints";
 
 const multipartHeaders = {
   headers: {
@@ -7,10 +7,17 @@ const multipartHeaders = {
   },
 };
 
-const uploadSingleImage = async ({ file, folderKey }) => {
+const uploadSingleImage = async ({ file, imageUrl, folderKey }) => {
   const formData = new FormData();
 
-  formData.append("image", file);
+  if (file) {
+    formData.append("image", file);
+  }
+
+  if (imageUrl) {
+    formData.append("imageUrl", imageUrl);
+  }
+
   formData.append("folder", folderKey);
 
   const response = await axiosInstance.post(

@@ -19,6 +19,7 @@ const defaultForm = {
   headings: [""],
   description: "",
   image: null,
+  imageUrl: "",
   guestButtonText: "",
   authButtonText: "",
   isActive: true,
@@ -51,6 +52,7 @@ export default function BannerFormModal({ open, onClose, data }) {
         headings: data.headings?.map((h) => h.text || h) || [""],
         description: data.description || "",
         image: data.image?.url || null,
+        imageUrl: "",
         guestButtonText: data.guestButtonText || "",
         authButtonText: data.authButtonText || "",
         isActive: Boolean(data.isActive),
@@ -74,6 +76,30 @@ export default function BannerFormModal({ open, onClose, data }) {
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageFileChange = (file) => {
+    setFormData((prev) => ({
+      ...prev,
+      image: file || null,
+      imageUrl: "",
+    }));
+  };
+
+  const handleImageUrlChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      imageUrl: value,
+      image: value.trim() ? null : prev.image,
+    }));
+  };
+
+  const clearImageSelection = () => {
+    setFormData((prev) => ({
+      ...prev,
+      image: typeof prev.image === "string" ? prev.image : null,
+      imageUrl: "",
+    }));
   };
 
   // Keep the heading list logic isolated so the form stays easy to scan.
@@ -134,13 +160,19 @@ export default function BannerFormModal({ open, onClose, data }) {
     const draftPayload = buildPayload(currentFormData);
     if (!draftPayload) return;
 
+    const trimmedImageUrl = currentFormData.imageUrl.trim();
     const hasNewImage =
       currentFormData.image && typeof currentFormData.image !== "string";
 
     const actionPromise = (async () => {
       let imageData = null;
 
-      if (hasNewImage) {
+      if (trimmedImageUrl) {
+        imageData = await uploadImageMutation.mutateAsync({
+          imageUrl: trimmedImageUrl,
+          folderKey: "BANNER",
+        });
+      } else if (hasNewImage) {
         imageData = await uploadImageMutation.mutateAsync({
           file: currentFormData.image,
           folderKey: "BANNER",
@@ -253,8 +285,11 @@ export default function BannerFormModal({ open, onClose, data }) {
             <SingleImageUploadBlock
               title="Banner Image"
               image={formData.image}
+              imageUrl={formData.imageUrl}
               altText="preview"
-              onChange={(file) => handleChange("image", file)}
+              onChange={handleImageFileChange}
+              onUrlChange={handleImageUrlChange}
+              onClear={clearImageSelection}
               disabled={uploadImageMutation.isPending}
               previewHeight="100px"
             />

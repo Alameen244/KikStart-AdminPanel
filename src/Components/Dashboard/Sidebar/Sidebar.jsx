@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   List,
   ListItem,
@@ -20,6 +20,7 @@ import {
   School,
   Sports,
   Help,
+  Quiz,
   Business,
   Login,
 } from "@mui/icons-material";
@@ -39,6 +40,7 @@ const pages = [
     icon: <Sports />,
   },
   { label: "Coach's Login", path: "/content/coach-login", icon: <Login /> },
+   { label: "FAQs", path: "/content/faqs", icon: <Quiz /> },
 ];
 
 export default function Sidebar() {
@@ -46,12 +48,24 @@ export default function Sidebar() {
   const location = useLocation();
 
   const isActive = (path) => {
-    return location.pathname === path;
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+
+    return (
+      location.pathname === path || location.pathname.startsWith(`${path}/`)
+    );
   };
 
   const isContentActive = () => {
     return location.pathname.startsWith("/content");
   };
+
+  useEffect(() => {
+    if (isContentActive()) {
+      setContentOpen(true);
+    }
+  }, [location.pathname]);
 
   return (
     <SidebarWrapper>
@@ -84,14 +98,14 @@ export default function Sidebar() {
             onClick={() => setContentOpen(!contentOpen)}
             className={isContentActive() ? "active" : ""}
           >
-            <ListItemIcon sx={{ color: isContentActive("/") ? "activeSidebar" : "white" }}>
+            <ListItemIcon sx={{ color: isContentActive() ? "activeSidebar" : "white" }}>
               <Article />
             </ListItemIcon>
             <ListItemText
               primary="Content"
               sx={{
                 "& .MuiListItemText-primary": {
-                  color: isContentActive("/") ? "activeSidebar" : "white",
+                  color: isContentActive() ? "activeSidebar" : "white",
                   fontWeight: isContentActive() ? 600 : 400,
                 },
               }}

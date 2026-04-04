@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { createWho, updateWho } from "../../../Apis/HomeApis/whoApi";
-import { uploadMultipleImages } from "../../../Apis/ImageUploadApi/imageUploadApi";
+import uploadSingleImage, {
+  uploadMultipleImages,
+} from "../../../Apis/ImageUploadApi/imageUploadApi";
 import { getErrorMessage, getSuccessMessage } from "../../../helper/helper";
 import SectionModalShell from "../../FormComponents/SectionModalShell";
 import FormColumnLayout from "../../FormComponents/FormColumnLayout";
@@ -19,7 +21,9 @@ const defaultForm = {
   description: "",
   buttonText: "",
   image1: null,
+  image1Url: "",
   image2: null,
+  image2Url: "",
   isActive: true,
 };
 
@@ -50,7 +54,9 @@ export default function WhoFormModal({ open, onClose, data }) {
         description: data.description || "",
         buttonText: data.buttonText || "",
         image1: data.image1?.url || null,
+        image1Url: "",
         image2: data.image2?.url || null,
+        image2Url: "",
         isActive: Boolean(data.isActive),
       });
       return;
@@ -73,6 +79,30 @@ export default function WhoFormModal({ open, onClose, data }) {
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageFileChange = (field, urlField, file) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: file || null,
+      [urlField]: "",
+    }));
+  };
+
+  const handleImageUrlChange = (field, urlField, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [urlField]: value,
+      [field]: value.trim() ? null : prev[field],
+    }));
+  };
+
+  const clearImageSelection = (field, urlField) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: typeof prev[field] === "string" ? prev[field] : null,
+      [urlField]: "",
+    }));
   };
 
   // Prepare a clean payload and stop early if required content is missing.
@@ -158,8 +188,32 @@ export default function WhoFormModal({ open, onClose, data }) {
     const actionPromise = (async () => {
       const currentFormData = { ...formData };
       const uploadedImages = await getUploadedImageMap(currentFormData);
+      const uploadedImage1FromUrl = currentFormData.image1Url.trim()
+        ? await uploadSingleImage({
+          imageUrl: currentFormData.image1Url.trim(),
+          folderKey: "OTHERS",
+        })
+        : null;
+      const uploadedImage2FromUrl = currentFormData.image2Url.trim()
+        ? await uploadSingleImage({
+          imageUrl: currentFormData.image2Url.trim(),
+          folderKey: "OTHERS",
+        })
+        : null;
       const payload = {
         ...draftPayload,
+        ...(uploadedImage1FromUrl
+          ? {
+              image1Url: uploadedImage1FromUrl.url,
+              image1PublicId: uploadedImage1FromUrl.public_id,
+            }
+          : {}),
+        ...(uploadedImage2FromUrl
+          ? {
+              image2Url: uploadedImage2FromUrl.url,
+              image2PublicId: uploadedImage2FromUrl.public_id,
+            }
+          : {}),
         ...(uploadedImages.image1
           ? {
               image1Url: uploadedImages.image1.url,
@@ -191,6 +245,10 @@ export default function WhoFormModal({ open, onClose, data }) {
         ? isEdit
           ? "Uploading images and updating who section..."
           : "Uploading images and creating who section..."
+        : formData.image1Url.trim() || formData.image2Url.trim()
+          ? isEdit
+            ? "Uploading image URLs and updating who section..."
+            : "Uploading image URLs and creating who section..."
         : isEdit
           ? "Updating who section..."
           : "Creating who section...",
@@ -263,8 +321,15 @@ export default function WhoFormModal({ open, onClose, data }) {
             <SingleImageUploadBlock
               title="Image 1"
               image={formData.image1}
+              imageUrl={formData.image1Url}
               altText="who image 1 preview"
-              onChange={(file) => handleChange("image1", file)}
+              onChange={(file) =>
+                handleImageFileChange("image1", "image1Url", file)
+              }
+              onUrlChange={(value) =>
+                handleImageUrlChange("image1", "image1Url", value)
+              }
+              onClear={() => clearImageSelection("image1", "image1Url")}
               disabled={isSubmitting}
               previewHeight="120px"
             />
@@ -272,8 +337,15 @@ export default function WhoFormModal({ open, onClose, data }) {
             <SingleImageUploadBlock
               title="Image 2"
               image={formData.image2}
+              imageUrl={formData.image2Url}
               altText="who image 2 preview"
-              onChange={(file) => handleChange("image2", file)}
+              onChange={(file) =>
+                handleImageFileChange("image2", "image2Url", file)
+              }
+              onUrlChange={(value) =>
+                handleImageUrlChange("image2", "image2Url", value)
+              }
+              onClear={() => clearImageSelection("image2", "image2Url")}
               disabled={isSubmitting}
               previewHeight="120px"
             />

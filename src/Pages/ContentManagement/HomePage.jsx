@@ -11,8 +11,10 @@ import { styled } from "@mui/material/styles";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import BannerSection from "../../Components/Home/Sections/BannerSection";
 import WhoSection from "../../Components/Home/Sections/WhoSection";
-import GymCardSection from "../../Components/Home/Sections/GymCardSection";
+import HomeWhyUsSection from "../../Components/Home/Sections/HomeWhyUsSection";
 import ProgramsSection from "../../Components/Home/Sections/ProgramsSection";
+import TestimonialSection from "../../Components/Home/Sections/TestimonialSection";
+import HomeFAQsSection from "../../Components/Home/Sections/HomeFAQsSection";
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -21,8 +23,10 @@ const HomePage = () => {
   const sections = [
     { id: "banner", label: "Banner", path: "banner", element: <BannerSection /> },
     { id: "who", label: "Who Section", path: "who", element: <WhoSection /> },
-    { id: "gym", label: "Gym Card", path: "gym", element: <GymCardSection /> },
+    { id: "why-us", label: "Why Us", path: "why-us", element: <HomeWhyUsSection /> },
     { id: "programs", label: "Programs", path: "programs", element: <ProgramsSection /> },
+    { id: "testimonial", label: "testimonial", path: "testimonial", element: <TestimonialSection /> },
+    { id: "faqs", label: "FAQs", path: "faqs", element: <HomeFAQsSection /> },
   ];
 
   const currentSection = location.pathname.split("/").filter(Boolean).pop();
@@ -50,7 +54,7 @@ const HomePage = () => {
             value={selectedSection}
             label="Select Section"
             onChange={(e) => navigate(`/content/home/${e.target.value}`)}
-          >
+          >  
             {sections.map((section) => (
               <MenuItem key={section.id} value={section.path}>
                 {section.label}

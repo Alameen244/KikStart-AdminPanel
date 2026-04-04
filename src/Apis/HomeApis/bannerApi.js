@@ -1,5 +1,5 @@
 import { axiosInstance } from "../../helper/helper";
-import { endpoints } from "../EndPoints/endpoints";
+import { endpoints } from "../EndPoints/homeEndpoints";
 
 export const getBannerSections = async () => {
   try {

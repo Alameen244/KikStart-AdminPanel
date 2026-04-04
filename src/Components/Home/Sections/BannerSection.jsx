@@ -23,14 +23,6 @@ import StatusChipCell from "../../TableComponents/StatusChipCell";
 import RichTextPreviewCell from "../../TableComponents/RichTextPreviewCell";
 import CenteredCell from "../../TableComponents/CenteredCell";
 
-const getDescriptionPreviewHtml = (html = "") => {
-  if (!html) return "";
-
-  return html
-    .replace(/<(\/?)(p|div|h1|h2|h3|h4|h5|h6|blockquote|li)>/gi, "<$1span>")
-    .replace(/<br\s*\/?>/gi, " ")
-    .replace(/&nbsp;/gi, " ");
-};
 
 export default function BannerSection() {
   const [openForm, setOpenForm] = useState(false);
@@ -49,8 +41,6 @@ export default function BannerSection() {
   } = useQuery({
     queryKey: ["bannerData"],
     queryFn: getBannerSections,
-    staleTime: 1000 * 60 * 5,
-    retry: 2,
   });
 
   const deleteMutation = useMutation({
@@ -171,7 +161,6 @@ export default function BannerSection() {
       renderCell: (params) => (
         <RichTextPreviewCell
           value={params.value}
-          formatter={getDescriptionPreviewHtml}
         />
       ),
     },
@@ -200,6 +189,8 @@ export default function BannerSection() {
       field: "isActive",
       headerName: "Status",
       width: 120,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => <StatusChipCell value={params.value} />,
     },
     {
@@ -207,6 +198,8 @@ export default function BannerSection() {
       headerName: "Action",
       width: 140,
       sortable: false,
+      align: "center",
+      headerAlign: "center",
       renderCell: (params) => (
         <ActionCell
           row={params.row}

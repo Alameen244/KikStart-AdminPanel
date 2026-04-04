@@ -7,12 +7,20 @@ export default function TextInputBlock({
   onChange,
   placeholder,
   label,
+  multiline = false,
+  minRows,
+  type = "text",
+  inputProps,
 }) {
   return (
     <FormCardBlock title={title}>
       <TextField
         fullWidth
         size="small"
+        type={type}
+        multiline={multiline}
+        minRows={minRows}
+        inputProps={inputProps}
         placeholder={placeholder}
         label={label}
         value={value}

@@ -102,7 +102,7 @@ export default function Sidebar() {
               <Article />
             </ListItemIcon>
             <ListItemText
-              primary="Content"
+              primary="CMS management"
               sx={{
                 "& .MuiListItemText-primary": {
                   color: isContentActive() ? "activeSidebar" : "white",

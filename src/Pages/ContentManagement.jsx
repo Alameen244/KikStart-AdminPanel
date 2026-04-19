@@ -4,12 +4,13 @@ import { styled } from "@mui/material/styles";
 import { Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./ContentManagement/HomePage";
 import FAQsPage from "./ContentManagement/FAQsPage";
+import ProgramsPage from "./ContentManagement/ProgramsPage";
 import WhyUsPage from "./ContentManagement/WhyUsPage";
 
 const contentPages = [
   { id: "home", title: "Home", path: "home/*", element: <HomePage /> },
   { id: "about", title: "About Us", path: "about" },
-  { id: "programs", title: "Programs", path: "programs" },
+  { id: "programs", title: "Programs", path: "programs", element: <ProgramsPage /> },
   { id: "why-us", title: "Why Us", path: "why-us", element: <WhyUsPage /> },
   { id: "contact-us", title: "Contact Us", path: "contact-us" },
   { id: "schools", title: "Interested Schools", path: "schools" },

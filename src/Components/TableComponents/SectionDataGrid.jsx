@@ -31,6 +31,7 @@ export default function SectionDataGrid({
           rows={rows}
           columns={columns}
           rowHeight={rowHeight}
+          disableRowSelectionOnClick
           initialState={{
             pagination: { paginationModel: { page: 0, pageSize: 5 } },
           }}

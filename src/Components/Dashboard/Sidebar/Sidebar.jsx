@@ -7,7 +7,6 @@ import {
   ListItemText,
   Collapse,
   Box,
-  Typography,
 } from "@mui/material";
 import {
   Dashboard,
@@ -23,9 +22,12 @@ import {
   Quiz,
   Business,
   Login,
+  AdminPanelSettings,
+  ManageAccounts,
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
+import { useAuth } from "../../../../../frontEnd/src/Context/AuthContext";
 
 const pages = [
   { label: "Home", path: "/content/home", icon: <Home /> },
@@ -40,12 +42,14 @@ const pages = [
     icon: <Sports />,
   },
   { label: "Coach's Login", path: "/content/coach-login", icon: <Login /> },
-   { label: "FAQs", path: "/content/faqs", icon: <Quiz /> },
+  { label: "FAQs", path: "/content/faqs", icon: <Quiz /> },
 ];
 
 export default function Sidebar() {
   const [contentOpen, setContentOpen] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
+  const isLoggedIn = Boolean(user);
 
   const isActive = (path) => {
     if (path === "/") {
@@ -67,6 +71,11 @@ export default function Sidebar() {
     }
   }, [location.pathname]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("loginName");
+    logout({ redirectTo: "/login", showToast: true });
+  };
+
   return (
     <SidebarWrapper>
       <List sx={{ padding: "16px 0" }}>
@@ -77,7 +86,9 @@ export default function Sidebar() {
             to="/"
             className={isActive("/") ? "active" : ""}
           >
-            <ListItemIcon sx={{ color: isActive("/") ? "activeSidebar" : "white" }}>
+            <ListItemIcon
+              sx={{ color: isActive("/") ? "activeSidebar" : "white" }}
+            >
               <Dashboard />
             </ListItemIcon>
             <ListItemText
@@ -98,7 +109,9 @@ export default function Sidebar() {
             onClick={() => setContentOpen(!contentOpen)}
             className={isContentActive() ? "active" : ""}
           >
-            <ListItemIcon sx={{ color: isContentActive() ? "activeSidebar" : "white" }}>
+            <ListItemIcon
+              sx={{ color: isContentActive() ? "activeSidebar" : "white" }}
+            >
               <Article />
             </ListItemIcon>
             <ListItemText
@@ -127,7 +140,12 @@ export default function Sidebar() {
                   to={page.path}
                   className={isActive(page.path) ? "active" : ""}
                 >
-                  <ListItemIcon sx={{ color: isActive(page.path) ? "activeSidebar" : "white", minWidth: 40 }}>
+                  <ListItemIcon
+                    sx={{
+                      color: isActive(page.path) ? "activeSidebar" : "white",
+                      minWidth: 40,
+                    }}
+                  >
                     {page.icon}
                   </ListItemIcon>
                   <ListItemText
@@ -153,7 +171,9 @@ export default function Sidebar() {
             to="/users"
             className={isActive("/users") ? "active" : ""}
           >
-            <ListItemIcon sx={{ color: isActive("/users") ? "activeSidebar" : "white" }}>
+            <ListItemIcon
+              sx={{ color: isActive("/users") ? "activeSidebar" : "white" }}
+            >
               <People />
             </ListItemIcon>
             <ListItemText
@@ -167,14 +187,116 @@ export default function Sidebar() {
             />
           </ListItemButton>
         </ListItem>
+        {/* // permissions */}
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/permissions"
+            className={isActive("/permissions") ? "active" : ""}
+          >
+            <ListItemIcon
+              sx={{
+                color: isActive("/permissions") ? "activeSidebar" : "white",
+              }}
+            >
+              <AdminPanelSettings />
+            </ListItemIcon>
+            <ListItemText
+              primary="Permissions"
+              sx={{
+                "& .MuiListItemText-primary": {
+                  color: isActive("/permissions") ? "activeSidebar" : "white",
+                  fontWeight: isActive("/permissions") ? 600 : 400,
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+        {/* // role */}
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/role-management"
+            className={isActive("/role-management") ? "active" : ""}
+          >
+            <ListItemIcon
+              sx={{
+                color: isActive("/role-management") ? "activeSidebar" : "white",
+              }}
+            >
+              <ManageAccounts />
+            </ListItemIcon>
+            <ListItemText
+              primary="Role Management"
+              sx={{
+                "& .MuiListItemText-primary": {
+                  color: isActive("/role-management")
+                    ? "activeSidebar"
+                    : "white",
+                  fontWeight: isActive("/role-management") ? 600 : 400,
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
       </List>
+
+      {/* admin login */}
+      <Box sx={{ padding: "0 20px 20px", marginTop: "auto" }}>
+        <ListItemButton
+          component={isLoggedIn ? "button" : Link}
+          to={isLoggedIn ? undefined : "/login"}
+          onClick={isLoggedIn ? handleLogout : undefined}
+          className={isActive("/login") ? "active" : ""}
+          sx={{
+            borderRadius: "10px",
+            backgroundColor: "rgba(255, 255, 255, 0.08)",
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              color: isActive("/login") ? "activeSidebar" : "white",
+            }}
+          >
+            <Login />
+          </ListItemIcon>
+          <ListItemText
+            primary={isLoggedIn ? "Logout" : "Login"}
+            sx={{
+              "& .MuiListItemText-primary": {
+                color: isActive("/login") ? "activeSidebar" : "white",
+                fontWeight: isActive("/login") ? 600 : 500,
+              },
+            }}
+          />
+        </ListItemButton>
+      </Box>
     </SidebarWrapper>
   );
 }
 
 const SidebarWrapper = styled(Box)(({ theme }) => ({
   height: "100%",
+  display: "flex",
+  flexDirection: "column",
   backgroundColor: theme.palette.sidebar.bg,
+  overflowY: "auto",
+  overflowX: "hidden",
+  scrollbarWidth: "thin",
+  scrollbarColor: `${theme.palette.activeSidebar} ${theme.palette.sidebar.bg}`,
+
+  "&::-webkit-scrollbar": {
+    width: "8px",
+  },
+
+  "&::-webkit-scrollbar-track": {
+    backgroundColor: theme.palette.sidebar.bg,
+  },
+
+  "&::-webkit-scrollbar-thumb": {
+    backgroundColor: theme.palette.activeSidebar,
+    borderRadius: "999px",
+  },
 
   ".MuiListItemButton-root": {
     padding: "12px 20px",

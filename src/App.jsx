@@ -13,6 +13,14 @@ import DashboardSection from "./Components/DashboardSection/DashboardSection";
 import Dashboard from "./Pages/Dashboard";
 import UserManagement from "./Pages/UserManagement";
 import ContentManagement from "./Pages/ContentManagement";
+import AdminLogin from "./Pages/AuthPages/AdminLogin";
+import AdminForgotPassword from "./Pages/AuthPages/AdminForgotPassword";
+import AdminResetPassword from "./Pages/AuthPages/AdminResetPassword";
+import AdminOtp from "./Pages/AuthPages/AdminOtp";
+import ProtectedRoute from "./Components/AdminAuth/ProtectedRoute";
+import PermissionGuard from "./Components/AdminAuth/PermissionGuard";
+import PermissionPage from "./Pages/PermissionPage";
+import RoleManagement from "./Pages/RoleManagement";
 
 function App() {
   return (
@@ -29,10 +37,47 @@ function App() {
       />
       <Router>
         <Routes>
-          <Route path="/" element={<DashboardSection />}>
-            <Route index element={<Dashboard />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="content/*" element={<ContentManagement />} />
+          <Route path="/login" element={<AdminLogin />} />
+          <Route path="/forgot-password" element={<AdminForgotPassword />} />
+          <Route path="/reset-password" element={<AdminResetPassword />} />
+          <Route path="/otp" element={<AdminOtp />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<DashboardSection />}>
+              <Route
+                index
+                element={
+                  <PermissionGuard moduleName="Dashboard">
+                    <Dashboard />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="users"
+                element={
+                  <PermissionGuard moduleName="User Management">
+                    <UserManagement />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="role-management"
+                element={
+                  <PermissionGuard moduleName="Role Management" adminOnly>
+                    <RoleManagement />
+                  </PermissionGuard>
+                }
+              />
+              <Route path="content/*" element={<ContentManagement />} />
+              <Route
+                path="permissions"
+                element={
+                  <PermissionGuard moduleName="Permission Management" adminOnly>
+                    <PermissionPage />
+                  </PermissionGuard>
+                }
+              />
+            </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

@@ -1,5 +1,5 @@
 // admin/src/helper/axios.js
-
+import Cookies from "js-cookie";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -14,11 +14,11 @@ export const getErrorMessage = (error, fallbackMessage = "Something went wrong."
     error?.response?.data?.message || error?.message || fallbackMessage;
 
 // 🚧 after Login implement uncomment this
-// axiosInstance.interceptors.request.use((config) => {
-//     const token = Cookies.get("adminToken");
-//     if (token) config.headers.Authorization = `Bearer ${token}`;
-//     return config;
-// });
+axiosInstance.interceptors.request.use((config) => {
+    const token = Cookies.get("token") || Cookies.get("adminToken");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+});
 
 axiosInstance.interceptors.response.use(
     (res) => res,

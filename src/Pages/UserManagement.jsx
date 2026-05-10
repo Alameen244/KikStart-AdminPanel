@@ -56,6 +56,8 @@ export default function UserManagement() {
             pinCode: user?.pinCode || "N/A",
             role: user?.role || "user",
             status: user?.isVerified ? "Active" : "Inactive",
+            subscription: user?.subscription?.status || "inactive",
+            plan: user?.subscription?.plan || "N/A",
             createdAt: user?.createdAt,
           }))
         : [],
@@ -140,14 +142,22 @@ export default function UserManagement() {
           {error?.response?.data?.message || "Failed to load users."}
         </Alert>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer
+          component={Paper}
+          sx={{
+            overflowX: "auto",
+            borderRadius: 3,
+          }}
+        >
+          <Table sx={{ minWidth: 900 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Name</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Role</TableCell>
                   <TableCell>Status</TableCell>
+                  <TableCell>Subscription</TableCell>
+                  <TableCell>Plan</TableCell>
                   <TableCell align="center">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -172,6 +182,17 @@ export default function UserManagement() {
                          size="small"
                        />
                      </TableCell>
+                     <TableCell>
+                       <Chip
+                         label={row.subscription}
+                         color={row.subscription === "active" ? "success" : "default"}
+                         size="small"
+                         sx={{ textTransform: "capitalize" }}
+                       />
+                     </TableCell>
+                     <TableCell sx={{ textTransform: "capitalize" }}>
+                       {row.plan}
+                     </TableCell>
                      <TableCell align="center">
                        <IconButton
                          onClick={() => handleOpen(row, "view")}
@@ -194,7 +215,7 @@ export default function UserManagement() {
                  ))
                ) : (
                  <TableRow>
-                   <TableCell colSpan={5} align="center">
+                   <TableCell colSpan={7} align="center">
                      No users found.
                    </TableCell>
                  </TableRow>

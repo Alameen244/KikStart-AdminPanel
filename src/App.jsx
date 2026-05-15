@@ -21,6 +21,7 @@ import ProtectedRoute from "./Components/AdminAuth/ProtectedRoute";
 import PermissionGuard from "./Components/AdminAuth/PermissionGuard";
 import PermissionPage from "./Pages/PermissionPage";
 import RoleManagement from "./Pages/RoleManagement";
+import NotFoundPage from "../../frontEnd/src/Pages/404notFound";
 
 function App() {
   return (
@@ -78,7 +79,7 @@ function App() {
                 }
               />
             </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </Router>

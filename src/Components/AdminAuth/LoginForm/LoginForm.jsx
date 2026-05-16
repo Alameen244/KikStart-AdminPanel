@@ -7,12 +7,12 @@ import PaswordField from "../../../../../frontEnd/src/Components/PasswordField/P
 import { Typography } from "@mui/material";
 import RedButton from "../../../../../frontEnd/src/Components/RedButton/RedButton";
 import { useMutation } from "@tanstack/react-query";
-import { login , sendOtp } from "../../../../../frontEnd/src/Apis/authApi";
+import { login, sendOtp } from "../../../Apis/AuthApis/authApis";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Link, useNavigate , useLocation } from "react-router-dom";
-import { useAuth } from "../../../../../frontEnd/src/Context/AuthContext";
+import { useAuth } from "../../../Context/AuthContext";
 
 
 const LoginForm = () => {
@@ -62,7 +62,7 @@ const LoginForm = () => {
     }
 
     const loginPromise = loginMutation.mutateAsync(formData).then(async (res) => {
-      Cookies.set("token", res?.token, { expires: 7 });
+      Cookies.set("adminToken", res?.token, { expires: 7 });
       localStorage.setItem("loginName", res?.data?.name || res?.name || "");
       await refreshAuth();
       setFormData({ email: "", password: "" });
@@ -91,6 +91,7 @@ const LoginForm = () => {
       ) {
         return false;
       }
+
       return true;
         },
       },

@@ -1,5 +1,5 @@
 import { Navigate, useLocation, Outlet } from "react-router-dom";
-import { useAuth } from "../../../../frontEnd/src/Context/AuthContext";
+import { useAuth } from "../../Context/AuthContext";
 
 const ProtectedRoute = ({ children, requireVerified = true }) => {
   const location = useLocation();

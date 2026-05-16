@@ -8,9 +8,9 @@ import { toast } from "react-toastify";
 import KIKSTART from "../../../assets/KIKSTART.png";
 import FormHeadings from "../../../../../frontEnd/src/Components/FormHeadings/FormHeadings";
 import { Container } from "@mui/material";
-import { verifySignUpOtp, verifyForgotOtp, resendOTP, sendOtp } from "../../../../../frontEnd/src/Apis/authApi";
+import { verifySignUpOtp, verifyForgotOtp, resendOTP, sendOtp } from "../../../Apis/AuthApis/authApis";
 import { useMutation } from "@tanstack/react-query";
-import { useAuth } from "../../../../../frontEnd/src/Context/AuthContext";
+import { useAuth } from "../../../Context/AuthContext";
 
 const OTPWrapper = styled(Box)({
   boxSizing: "border-box",

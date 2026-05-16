@@ -5,7 +5,7 @@ import FormHeadings from "../../../../../frontEnd/src/Components/FormHeadings/Fo
 import OneLineField from "../../../../../frontEnd/src/Components/OneLineField/OneLineField";
 import PaswordField from "../../../../../frontEnd/src/Components/PasswordField/PaswordField";
 import RedButton from "../../../../../frontEnd/src/Components/RedButton/RedButton";
-import { forgotPassword } from "../../../../../frontEnd/src/Apis/authApi";
+import { forgotPassword } from "../../../Apis/AuthApis/authApis";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Link, useLocation, useNavigate } from "react-router-dom";

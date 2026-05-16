@@ -27,7 +27,7 @@ import {
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
-import { useAuth } from "../../../../../frontEnd/src/Context/AuthContext";
+import { useAuth } from "../../../Context/AuthContext";
 
 const pages = [
   { label: "Home", path: "/content/home", icon: <Home /> },

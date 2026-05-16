@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth } from "../../../../frontEnd/src/Context/AuthContext";
+import { useAuth } from "../../Context/AuthContext";
 import PermissionWarningPage from "../../Pages/PermissionWarningPage";
 import { hasModulePermission } from "../../utils/permissionUtils";
 

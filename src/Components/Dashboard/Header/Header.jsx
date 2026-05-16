@@ -8,7 +8,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import SearchIcon from "@mui/icons-material/Search";
 import { Link } from "react-router-dom";
-import { useAuth } from "../../../../../frontEnd/src/Context/AuthContext";
+import { useAuth } from "../../../Context/AuthContext";
 import kikstartLogo from "../../../assets/KIKSTART.png";
 
 const Search = styled("div")(({ theme }) => ({

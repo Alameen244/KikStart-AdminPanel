@@ -6,18 +6,6 @@ export const login = async (payload) => {
     return res?.data;
 }
 
-export const register = async (payload) => {
-    const normalizedPayload = {
-        ...payload,
-        pinCode: payload?.pinCode || payload?.passCode
-    };
-    delete normalizedPayload.passCode;
-    delete normalizedPayload.confirmPassword;
-
-    const res = await axiosInstance.post(authEndpoints.SIGN_UP, normalizedPayload);
-    return res?.data;
-}
-
 export const forgotPassword = async (payload) => {
     const res = await axiosInstance.post(authEndpoints.FORGOT_PASSWORD, payload);
     return res?.data;
@@ -60,12 +48,12 @@ export const getAllUsers = async () => {
 }
 
 export const getUserById = async (id) => {
-    const res = await axiosInstance.get(`${authEndpoints.GET_USERS}${id}`);
+    const res = await axiosInstance.get(`${authEndpoints.GET_USERS}/${id}`);
     return res?.data;
 }
 
 export const deleteUserById = async (id) => {
-    const res = await axiosInstance.delete(`${authEndpoints.GET_USERS}${id}`);
+    const res = await axiosInstance.delete(`${authEndpoints.GET_USERS}/${id}`);
     return res?.data;
 }
 

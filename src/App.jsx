@@ -22,6 +22,7 @@ import PermissionGuard from "./Components/AdminAuth/PermissionGuard";
 import PermissionPage from "./Pages/PermissionPage";
 import RoleManagement from "./Pages/RoleManagement";
 import NotFoundPage from "../../frontEnd/src/Pages/404notFound";
+import Subscription from "./Pages/Subscription";
 
 function App() {
   return (
@@ -58,6 +59,14 @@ function App() {
                 element={
                   <PermissionGuard moduleName="User Management">
                     <UserManagement />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="subscriptions"
+                element={
+                  <PermissionGuard moduleName="Subscriptions" adminOnly>
+                    <Subscription />
                   </PermissionGuard>
                 }
               />

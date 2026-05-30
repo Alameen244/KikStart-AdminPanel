@@ -2,6 +2,7 @@ export const baseModules = [
   "Dashboard",
   "User Management",
   "CMS Management",
+  "Subscriptions",
   "Home Content",
   "About Us",
   "Programs",

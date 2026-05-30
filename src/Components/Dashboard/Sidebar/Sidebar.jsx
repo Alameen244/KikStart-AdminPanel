@@ -24,6 +24,7 @@ import {
   Login,
   AdminPanelSettings,
   ManageAccounts,
+  CreditScore
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
@@ -128,6 +129,32 @@ export default function Sidebar() {
             ) : (
               <ExpandMore sx={{ color: "white" }} />
             )}
+          </ListItemButton>
+        </ListItem>
+
+        {/* Subscription Management */}
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/subscriptions"
+            className={isActive("/subscriptions") ? "active" : ""}
+          >
+            <ListItemIcon
+              sx={{
+                color: isActive("/subscriptions") ? "activeSidebar" : "white",
+              }}
+            >
+              <CreditScore />
+            </ListItemIcon>
+            <ListItemText
+              primary="Subscriptions"
+              sx={{
+                "& .MuiListItemText-primary": {
+                  color: isActive("/subscriptions") ? "activeSidebar" : "white",
+                  fontWeight: isActive("/subscriptions") ? 600 : 400,
+                },
+              }}
+            />
           </ListItemButton>
         </ListItem>
 

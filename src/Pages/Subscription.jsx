@@ -626,8 +626,8 @@ export default function SubscriptionsPage() {
       >
         <TableContainer>
           <Table>
-                      <TableHead>
-                           {/* expand col */}
+            <TableHead>
+              {/* expand col */}
               <TableRow sx={{ backgroundColor: "#fafafa" }}>
                 <TableCell sx={{ width: 44 }} />
                 {["User", "Plan", "Status", "Total Paid", "Transactions"].map(

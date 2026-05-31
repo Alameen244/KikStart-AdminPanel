@@ -23,6 +23,7 @@ import PermissionPage from "./Pages/PermissionPage";
 import RoleManagement from "./Pages/RoleManagement";
 import NotFoundPage from "../../frontEnd/src/Pages/404notFound";
 import Subscription from "./Pages/Subscription";
+import RevenueAnalyticsPage from "./Pages/RevenueAnalyticsPage";
 
 function App() {
   return (
@@ -67,6 +68,14 @@ function App() {
                 element={
                   <PermissionGuard moduleName="Subscriptions" adminOnly>
                     <Subscription />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="revenue-analytics"
+                element={
+                  <PermissionGuard moduleName="Revenue Analytics" adminOnly>
+                    <RevenueAnalyticsPage />
                   </PermissionGuard>
                 }
               />

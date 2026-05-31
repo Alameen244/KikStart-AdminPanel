@@ -24,7 +24,8 @@ import {
   Login,
   AdminPanelSettings,
   ManageAccounts,
-  CreditScore
+  CreditScore,
+  QueryStats
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
@@ -190,6 +191,37 @@ export default function Sidebar() {
             ))}
           </List>
         </Collapse>
+
+        {/* revenue analytics */}
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/revenue-analytics"
+            className={isActive("/revenue-analytics") ? "active" : ""}
+          >
+            <ListItemIcon
+              sx={{
+                color: isActive("/revenue-analytics")
+                  ? "activeSidebar"
+                  : "white",
+              }}
+            >
+              <QueryStats />
+            </ListItemIcon>
+            <ListItemText
+              primary="Revenue Analytics"
+              sx={{
+                "& .MuiListItemText-primary": {
+                  color: isActive("/revenue-analytics")
+                    ? "activeSidebar"
+                    : "white",
+                  fontWeight: isActive("/revenue-analytics") ? 600 : 400,
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
 
         {/* User Management */}
         <ListItem disablePadding>

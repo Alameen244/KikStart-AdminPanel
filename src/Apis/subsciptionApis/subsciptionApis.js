@@ -39,3 +39,11 @@ export const getPlanDistribution = async ({ year, month } = {}) => {
     const res = await axiosInstance.get(`${subscriptionEndpoints.GET_PLAN_DISTRIBUTION}?${params}`);
     return res?.data;
 };
+
+export const getRevenueBreakdown = async ({ year, status = "paid" } = {}) => {
+    const params = new URLSearchParams();
+    if (year)  params.append("year",   year);
+    if (status) params.append("status", status);
+    const res = await axiosInstance.get(`${subscriptionEndpoints.GET_REVENUE_BREAKDOWN}?${params}`);
+    return res?.data;
+};

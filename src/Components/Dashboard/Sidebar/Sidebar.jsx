@@ -133,33 +133,7 @@ export default function Sidebar() {
           </ListItemButton>
         </ListItem>
 
-        {/* Subscription Management */}
-        <ListItem disablePadding>
-          <ListItemButton
-            component={Link}
-            to="/subscriptions"
-            className={isActive("/subscriptions") ? "active" : ""}
-          >
-            <ListItemIcon
-              sx={{
-                color: isActive("/subscriptions") ? "activeSidebar" : "white",
-              }}
-            >
-              <CreditScore />
-            </ListItemIcon>
-            <ListItemText
-              primary="Subscriptions"
-              sx={{
-                "& .MuiListItemText-primary": {
-                  color: isActive("/subscriptions") ? "activeSidebar" : "white",
-                  fontWeight: isActive("/subscriptions") ? 600 : 400,
-                },
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
-
-        <Collapse in={contentOpen} timeout="auto" unmountOnExit>
+         <Collapse in={contentOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding sx={{ pl: 4 }}>
             {pages.map((page) => (
               <ListItem key={page.path} disablePadding>
@@ -192,17 +166,44 @@ export default function Sidebar() {
           </List>
         </Collapse>
 
-        {/* revenue analytics */}
+        {/* Subscription Management */}
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/subscriptions"
+            className={isActive("/subscriptions") ? "active" : ""}
+          >
+            <ListItemIcon
+              sx={{
+                color: isActive("/subscriptions") ? "activeSidebar" : "white",
+              }}
+            >
+              <CreditScore />
+            </ListItemIcon>
+            <ListItemText
+              primary="Subscriptions"
+              sx={{
+                "& .MuiListItemText-primary": {
+                  color: isActive("/subscriptions") ? "activeSidebar" : "white",
+                  fontWeight: isActive("/subscriptions") ? 600 : 400,
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+
+
+        {/* revenue breakdown */}
 
         <ListItem disablePadding>
           <ListItemButton
             component={Link}
-            to="/revenue-analytics"
-            className={isActive("/revenue-analytics") ? "active" : ""}
+            to="/revenue-breakdown"
+            className={isActive("/revenue-breakdown") ? "active" : ""}
           >
             <ListItemIcon
               sx={{
-                color: isActive("/revenue-analytics")
+                color: isActive("/revenue-breakdown")
                   ? "activeSidebar"
                   : "white",
               }}
@@ -210,13 +211,13 @@ export default function Sidebar() {
               <QueryStats />
             </ListItemIcon>
             <ListItemText
-              primary="Revenue Analytics"
+              primary="Revenue Breakdown"
               sx={{
                 "& .MuiListItemText-primary": {
-                  color: isActive("/revenue-analytics")
+                  color: isActive("/revenue-breakdown")
                     ? "activeSidebar"
                     : "white",
-                  fontWeight: isActive("/revenue-analytics") ? 600 : 400,
+                  fontWeight: isActive("/revenue-breakdown") ? 600 : 400,
                 },
               }}
             />

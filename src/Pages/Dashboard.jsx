@@ -7,6 +7,7 @@ import {
   Visibility,
   TrendingUp,
 } from '@mui/icons-material';
+import RevenueAnalyticsPage from './RevenueAnalyticsPage';
 
 export default function Dashboard() {
   const stats = [
@@ -36,9 +37,9 @@ export default function Dashboard() {
                       {stat.title}
                     </Typography>
                   </Box>
-                  <Box sx={{ 
-                    backgroundColor: `${stat.color}15`, 
-                    borderRadius: '50%', 
+                  <Box sx={{
+                    backgroundColor: `${stat.color}15`,
+                    borderRadius: '50%',
                     p: 1,
                     color: stat.color
                   }}>
@@ -73,9 +74,13 @@ export default function Dashboard() {
           </Paper>
         </Grid>
       </Grid>
+      <RevenueSection>
+      <RevenueAnalyticsPage />
+      </RevenueSection>
     </DashboardContainer>
   );
 }
+
 
 const DashboardContainer = styled(Box)({
   maxWidth: '1200px',
@@ -90,3 +95,7 @@ const StatCard = styled(Card)(({ theme }) => ({
     boxShadow: theme.shadows[4],
   },
 }));
+
+const RevenueSection = styled(Box)({
+  margin: '50px 0',
+});

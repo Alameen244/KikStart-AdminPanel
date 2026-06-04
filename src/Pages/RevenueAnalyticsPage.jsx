@@ -81,8 +81,10 @@ const RevenueAnalyticsPage = () => {
             <OverviewCards data={overviewData} loading={overviewLoading} />
 
             {/* Charts row */}
-            <Grid container spacing={2.5}>
-                <Grid item xs={12} md={8}>
+            <Grid container sx={{
+                justifyContent:"space-between"
+            }}>
+                <Grid size={{ xs: 12, md: 6 }} width="48%">
                     <RevenueChart
                         data={chartData}
                         loading={chartLoading}
@@ -90,7 +92,7 @@ const RevenueAnalyticsPage = () => {
                         year={filters.year}
                     />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 6 }} width="48%">
                     <PlanDistributionChart
                         data={distributionData}
                         loading={distributionLoading}

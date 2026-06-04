@@ -1,292 +1,246 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Typography,
 } from "@mui/material";
-import { Delete, Edit, Visibility } from "@mui/icons-material";
+import { FileDownload } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  deleteUserById,
-  getAllUsers,
-  getUserById,
-} from "../Apis/AuthApis/authApis";
 import { toast } from "react-toastify";
 
+import {
+    deleteUserById,
+    exportAllUsers,
+    getAllUsers,
+    getUserById,
+} from "../Apis/AuthApis/authApis";
+import { exportUsersPDF } from "../Components/UserManagement/Exportuserspdf";
+import UserFilters from "../Components/UserManagement/Userfilters";
+import UserTable from "../Components/UserManagement/Usertable";
+import UserViewDialog from "../Components/UserManagement/Userviewdialog";
+import UserDeleteDialog from "../Components/UserManagement/Userdeletedialog";
+
+// ─── Default filter state ──────────────────────────────────────────────────────
+const DEFAULT_FILTERS = {
+    page:               1,
+    limit:              20,
+    search:             "",
+    role:               "",
+    subscriptionStatus: "",
+    plan:               "",
+    sortBy:             "createdAt",
+    sortOrder:          "desc",
+};
+
 export default function UserManagement() {
-  const queryClient = useQueryClient();
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [mode, setMode] = useState("");
+    const queryClient = useQueryClient();
 
-  const {
-    data: usersResponse,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["admin-users"],
-    queryFn: getAllUsers,
-  });
+    // ── Filters + pagination state ──────────────────────────────────────────────
+    const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const [selectedRow, setSelectedRow] = useState(null);
+    const [mode, setMode] = useState("");          // "view" | "delete" | ""
+    const [isExporting, setIsExporting] = useState(false);
 
-  const rows = useMemo(
-    () =>
-      Array.isArray(usersResponse?.data)
-        ? usersResponse.data.map((user) => ({
-            id: user?._id,
-            name: user?.name || "N/A",
-            email: user?.email || "N/A",
-            phone: user?.phone || "N/A",
-            location: user?.location || "N/A",
-            pinCode: user?.pinCode || "N/A",
-            role: user?.role || "user",
-            status: user?.isVerified ? "Active" : "Inactive",
-            subscription: user?.subscription?.status || "inactive",
-            plan: user?.subscription?.plan || "N/A",
-            createdAt: user?.createdAt,
-          }))
-        : [],
-    [usersResponse],
-  );
+    // Merge partial updates and always reset to page 1 unless page is explicitly set
+    const handleFilterChange = useCallback((updates) => {
+        setFilters((prev) => ({ ...prev, ...updates }));
+    }, []);
 
-  const userDetailsQuery = useQuery({
-    queryKey: ["admin-user", selectedRow?.id],
-    queryFn: () => getUserById(selectedRow.id),
-    enabled: mode === "view" && Boolean(selectedRow?.id),
-  });
+    const handleReset = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
-  const deleteMutation = useMutation({
-    mutationFn: deleteUserById,
-    onSuccess: (response) => {
-      toast.success(response?.message || "User deleted successfully.");
-      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-      handleClose();
-    },
-    onError: (mutationError) => {
-      toast.error(
-        mutationError?.response?.data?.message || "Failed to delete user.",
-      );
-    },
-  });
+    // ── Check if any non-default filter is active ───────────────────────────────
+    const hasActiveFilters = useMemo(() => (
+        filters.search !== "" ||
+        filters.role !== "" ||
+        filters.subscriptionStatus !== "" ||
+        filters.plan !== "" ||
+        filters.sortBy !== "createdAt" ||
+        filters.sortOrder !== "desc"
+    ), [filters]);
 
-  const handleOpen = (row, type) => {
-    setSelectedRow(row);
-    setMode(type);
-  };
+    // ── Main users query — re-fetches on every filter change ────────────────────
+    const {
+        data: usersResponse,
+        isLoading,
+        isError,
+        error,
+    } = useQuery({
+        queryKey: ["admin-users", filters],
+        queryFn:  () => getAllUsers(filters),
+        keepPreviousData: true,   // no blank flash on filter change
+    });
 
-  const handleClose = () => {
-    setSelectedRow(null);
-    setMode("");
-  };
+    // ── Map API data → table rows ────────────────────────────────────────────────
+    const rows = useMemo(
+        () =>
+            Array.isArray(usersResponse?.data)
+                ? usersResponse.data.map((user) => ({
+                      id:           user?._id,
+                      name:         user?.name || "N/A",
+                      email:        user?.email || "N/A",
+                      phone:        user?.phone || "N/A",
+                      location:     user?.location || "N/A",
+                      pinCode:      user?.pinCode || "N/A",
+                      role:         user?.role || "user",
+                      status:       user?.isVerified ? "Active" : "Inactive",
+                      subscription: user?.subscription?.status || "inactive",
+                      plan:         user?.subscription?.plan || "N/A",
+                      createdAt:    user?.createdAt,
+                  }))
+                : [],
+        [usersResponse],
+    );
 
-  const handleDelete = () => {
-    if (!selectedRow?.id) return;
-    deleteMutation.mutate(selectedRow.id);
-  };
+    const totalPages = usersResponse?.totalPages ?? 1;
+    const totalCount = usersResponse?.total ?? rows.length;
 
-  const getRoleColor = (role) => {
-    switch ((role || "").toLowerCase()) {
-      case "admin":
-        return "error";
-      case "subadmin":
-        return "warning";
-      default:
-        return "default";
-    }
-  };
+    // ── View user details query ──────────────────────────────────────────────────
+    const userDetailsQuery = useQuery({
+        queryKey: ["admin-user", selectedRow?.id],
+        queryFn:  () => getUserById(selectedRow.id),
+        enabled:  mode === "view" && Boolean(selectedRow?.id),
+    });
 
-  const getStatusColor = (status) =>
-    status === "Active" ? "success" : "default";
+    // ── Delete mutation ──────────────────────────────────────────────────────────
+    const deleteMutation = useMutation({
+        mutationFn: deleteUserById,
+        onSuccess: (response) => {
+            toast.success(response?.message || "User deleted successfully.");
+            queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+            handleClose();
+        },
+        onError: (mutationError) => {
+            toast.error(mutationError?.response?.data?.message || "Failed to delete user.");
+        },
+    });
 
-  const userDetails = userDetailsQuery.data?.data || selectedRow;
+    // ── Dialog helpers ───────────────────────────────────────────────────────────
+    const handleOpen  = (row, type) => { setSelectedRow(row); setMode(type); };
+    const handleClose = () => { setSelectedRow(null); setMode(""); };
+    const handleDelete = () => { if (selectedRow?.id) deleteMutation.mutate(selectedRow.id); };
 
-  return (
-    <UserManagementContainer>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 3,
-        }}
-      >
-        <Typography variant="h4" sx={{ fontWeight: 600, color: "dark.main" }}>
-          User Management
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Showing {rows.length} users from DataBase
-        </Typography>
-      </Box>
+    // ── PDF Export ───────────────────────────────────────────────────────────────
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            // Build export params — same filters, no pagination
+            const { page, limit, ...exportParams } = filters;
+            const response = await exportAllUsers(exportParams);
 
-      {isLoading ? (
-        <CenteredState>
-          <CircularProgress />
-        </CenteredState>
-      ) : isError ? (
-        <Alert severity="error">
-          {error?.response?.data?.message || "Failed to load users."}
-        </Alert>
-      ) : (
-        <TableContainer
-          component={Paper}
-          sx={{
-            overflowX: "auto",
-            borderRadius: 3,
-          }}
-        >
-          <Table sx={{ minWidth: 900 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Subscription</TableCell>
-                  <TableCell>Plan</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
+            if (!response?.data?.length) {
+                toast.info("No users to export with current filters.");
+                return;
+            }
 
-            <TableBody>
-               {rows.length > 0 ? (
-                 rows.map((row) => (
-                   <TableRow key={row.id}>
-                     <TableCell sx={{ fontWeight: 500 }}>{row.name}</TableCell>
-                     <TableCell>{row.email}</TableCell>
-                     <TableCell>
-                       <Chip
-                         label={row.role}
-                         color={getRoleColor(row.role)}
-                         size="small"
-                       />
-                     </TableCell>
-                     <TableCell>
-                       <Chip
-                         label={row.status}
-                         color={getStatusColor(row.status)}
-                         size="small"
-                       />
-                     </TableCell>
-                     <TableCell>
-                       <Chip
-                         label={row.subscription}
-                         color={row.subscription === "active" ? "success" : "default"}
-                         size="small"
-                         sx={{ textTransform: "capitalize" }}
-                       />
-                     </TableCell>
-                     <TableCell sx={{ textTransform: "capitalize" }}>
-                       {row.plan}
-                     </TableCell>
-                     <TableCell align="center">
-                       <IconButton
-                         onClick={() => handleOpen(row, "view")}
-                         size="small"
-                       >
-                         <Visibility />
-                       </IconButton>
-                       <IconButton size="small" disabled>
-                         <Edit />
-                       </IconButton>
-                       <IconButton
-                         onClick={() => handleOpen(row, "delete")}
-                         size="small"
-                         color="error"
-                       >
-                         <Delete />
-                       </IconButton>
-                     </TableCell>
-                   </TableRow>
-                 ))
-               ) : (
-                 <TableRow>
-                   <TableCell colSpan={7} align="center">
-                     No users found.
-                   </TableCell>
-                 </TableRow>
-               )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+            exportUsersPDF(response.data, {
+                search:             filters.search,
+                role:               filters.role,
+                subscriptionStatus: filters.subscriptionStatus,
+                plan:               filters.plan,
+            });
 
-      <Dialog open={mode === "view"} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>User Details</DialogTitle>
-        <DialogContent>
-          {userDetailsQuery.isLoading ? (
-            <CenteredState>
-              <CircularProgress size={28} />
-            </CenteredState>
-          ) : userDetailsQuery.isError ? (
-            <Alert severity="error">
-              {userDetailsQuery.error?.response?.data?.message ||
-                "Failed to load user details."}
-            </Alert>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Typography><strong>Name:</strong> {userDetails?.name || "N/A"}</Typography>
-              <Typography><strong>Email:</strong> {userDetails?.email || "N/A"}</Typography>
-              <Typography><strong>Phone:</strong> {userDetails?.phone || "N/A"}</Typography>
-              <Typography><strong>Location:</strong> {userDetails?.location || "N/A"}</Typography>
-              <Typography><strong>Pin Code:</strong> {userDetails?.pinCode || "N/A"}</Typography>
-              <Typography><strong>Role:</strong> {userDetails?.role || "N/A"}</Typography>
-              <Typography>
-                <strong>Status:</strong> {userDetails?.isVerified ? "Active" : userDetails?.status || "Inactive"}
-              </Typography>
+            toast.success(`Exported ${response.data.length} users as PDF.`);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Export failed.");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    return (
+        <UserManagementContainer>
+            {/* Header */}
+            <Box
+                sx={{
+                    display:        "flex",
+                    justifyContent: "space-between",
+                    alignItems:     "center",
+                    mb:             3,
+                    flexWrap:       "wrap",
+                    gap:            1,
+                }}
+            >
+                <Box>
+                    <Typography variant="h4" sx={{ fontWeight: 600, color: "dark.main" }}>
+                        User Management
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                        {isLoading
+                            ? "Loading…"
+                            : `Showing ${rows.length} of ${totalCount} users`}
+                    </Typography>
+                </Box>
+
+                <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={isExporting ? <CircularProgress size={14} /> : <FileDownload />}
+                    onClick={handleExport}
+                    disabled={isExporting || isLoading}
+                >
+                    {isExporting ? "Exporting…" : "Export PDF"}
+                </Button>
             </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Close</Button>
-        </DialogActions>
-      </Dialog>
 
-      <Dialog open={mode === "delete"} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>Confirm Delete</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete <strong>{selectedRow?.name}</strong>?
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} disabled={deleteMutation.isPending}>
-            Cancel
-          </Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-          >
-            {deleteMutation.isPending ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </UserManagementContainer>
-  );
+            {/* Filters */}
+            <UserFilters
+                filters={filters}
+                onChange={handleFilterChange}
+                onReset={handleReset}
+                hasActiveFilters={hasActiveFilters}
+            />
+
+            {/* Table */}
+            {isLoading ? (
+                <CenteredState>
+                    <CircularProgress />
+                </CenteredState>
+            ) : isError ? (
+                <Alert severity="error">
+                    {error?.response?.data?.message || "Failed to load users."}
+                </Alert>
+            ) : (
+                <UserTable
+                    rows={rows}
+                    totalPages={totalPages}
+                    page={filters.page}
+                    onPageChange={(p) => handleFilterChange({ page: p })}
+                    onAction={handleOpen}
+                />
+            )}
+
+            {/* View Dialog */}
+            <UserViewDialog
+                open={mode === "view"}
+                onClose={handleClose}
+                userDetailsQuery={userDetailsQuery}
+                fallbackUser={selectedRow}
+            />
+
+            {/* Delete Dialog */}
+            <UserDeleteDialog
+                open={mode === "delete"}
+                onClose={handleClose}
+                onConfirm={handleDelete}
+                user={selectedRow}
+                isPending={deleteMutation.isPending}
+            />
+        </UserManagementContainer>
+    );
 }
 
 const UserManagementContainer = styled(Box)({
-  maxWidth: "1200px",
-  margin: "0 auto",
+    maxWidth: "1200px",
+    margin:   "0 auto",
 });
 
 const CenteredState = styled(Box)({
-  minHeight: "220px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
+    minHeight:      "220px",
+    display:        "flex",
+    alignItems:     "center",
+    justifyContent: "center",
 });

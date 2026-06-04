@@ -42,10 +42,23 @@ export const getMe = async () => {
     return res?.data;
 }
 
-export const getAllUsers = async () => {
-    const res = await axiosInstance.get(authEndpoints.GET_USERS);
+/**
+ * Fetches paginated + filtered users.
+ * @param {Object} params - { page, limit, search, role, subscriptionStatus, plan, sortBy, sortOrder }
+ */
+export const getAllUsers = async (params = {}) => {
+    const res = await axiosInstance.get(authEndpoints.GET_USERS, { params });
     return res?.data;
-}
+};
+
+/**
+ * Fetches ALL users matching the same filters (no pagination) — used for PDF export.
+ * @param {Object} params - { search, role, subscriptionStatus, plan, sortBy, sortOrder }
+ */
+export const exportAllUsers = async (params = {}) => {
+    const res = await axiosInstance.get(authEndpoints.EXPORT_USERS, { params });
+    return res?.data;
+};
 
 export const getUserById = async (id) => {
     const res = await axiosInstance.get(`${authEndpoints.GET_USERS}/${id}`);

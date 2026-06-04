@@ -8,5 +8,6 @@ export const authEndpoints = {
   RESEND_OTP: "api/v1/admin/auth/resendOtp",
   ME: "api/v1/admin/auth/me",
   GET_USERS: "api/v1/admin/auth/users",
+  EXPORT_USERS:"api/v1/admin/auth/users/export",
   SUBADMINS: "api/v1/admin/auth/subadmins",
-};
+}; 

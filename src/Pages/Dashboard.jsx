@@ -25,7 +25,7 @@ export default function Dashboard() {
 
       <Grid container spacing={3}>
         {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
             <StatCard>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -53,7 +53,7 @@ export default function Dashboard() {
       </Grid>
 
       <Grid container spacing={3} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={8}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
               Recent Activity
@@ -63,7 +63,7 @@ export default function Dashboard() {
             </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
               Quick Actions
@@ -97,5 +97,5 @@ const StatCard = styled(Card)(({ theme }) => ({
 }));
 
 const RevenueSection = styled(Box)({
-  margin: '50px 0',
+  margin: '110px 0',
 });

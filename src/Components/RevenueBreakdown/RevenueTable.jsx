@@ -152,6 +152,9 @@ const sx = {
     textTransform: "uppercase",
     letterSpacing: "0.4px",
   },
+  exportButton: {
+    marginRight: 2,
+  },
 };
 
 export default function RevenueTable({
@@ -363,14 +366,17 @@ export default function RevenueTable({
       <Box sx={sx.titleBar}>
         <Typography sx={sx.title}>{title}</Typography>
         {plan && <Box sx={sx.planBadge(plan)}>{plan}</Box>}
+        <Box sx={sx.exportButton}>
         <Button
           variant="outlined"
           sx={sx.csvBtn}
           startIcon={<Download sx={{ fontSize: "14px !important" }} />}
           onClick={handlePDF}
+
         >
           Export CSV
         </Button>
+        </Box>
       </Box>
 
       <TableContainer>

@@ -22,6 +22,7 @@ import UserFilters from "../Components/UserManagement/Userfilters";
 import UserTable from "../Components/UserManagement/Usertable";
 import UserViewDialog from "../Components/UserManagement/Userviewdialog";
 import UserDeleteDialog from "../Components/UserManagement/Userdeletedialog";
+import ExportButton from "../Components/ExportButton/ExportButton";
 
 // ─── Default filter state ──────────────────────────────────────────────────────
 const DEFAULT_FILTERS = {
@@ -175,15 +176,7 @@ export default function UserManagement() {
                     </Typography>
                 </Box>
 
-                <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={isExporting ? <CircularProgress size={14} /> : <FileDownload />}
-                    onClick={handleExport}
-                    disabled={isExporting || isLoading}
-                >
-                    {isExporting ? "Exporting…" : "Export PDF"}
-                </Button>
+               <ExportButton onClick={handleExport} loading={isExporting} />
             </Box>
 
             {/* Filters */}

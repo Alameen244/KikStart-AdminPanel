@@ -6,8 +6,9 @@ export default function ExportButton({
   disabled = false,
   onClick,
   label = "Export PDF",
-  height = 42,
+  height = "42px",
   px = "16px",
+  fontSize = "14px",
 }) {
   return (
     <Button
@@ -35,6 +36,8 @@ export default function ExportButton({
 
         boxShadow: "0 12px 30px rgba(99,102,241,.25);",
         color: "#fff",
+
+        fontSize:fontSize,
 
         fontWeight: 700,
 

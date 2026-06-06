@@ -115,4 +115,4 @@ export default function UserViewDialog({ open, onClose, userDetailsQuery, fallba
             </DialogActions>
         </Dialog>
     );
-}
+}       

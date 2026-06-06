@@ -25,15 +25,29 @@ const getRoleColor = (role) => {
 
 const getStatusColor = (status) => (status === "Active" ? "success" : "default");
 
+const formatJoinDate = (date) => {
+    if (!date) return "N/A";
+
+    const parsedDate = new Date(date);
+    if (Number.isNaN(parsedDate.getTime())) return "N/A";
+
+    return parsedDate.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+};
+
 export default function UserTable({ rows, totalPages, page, onPageChange, onAction }) {
     return (
         <Box>
             <TableContainer component={Paper} sx={{ overflowX: "auto", borderRadius: 3 }}>
-                <Table sx={{ minWidth: 900 }}>
+                <Table sx={{ minWidth: 1000 }}>
                     <TableHead>
                         <TableRow>
                             <TableCell>Name</TableCell>
                             <TableCell>Email</TableCell>
+                            <TableCell>Join Date</TableCell>
                             <TableCell>Role</TableCell>
                             <TableCell>Status</TableCell>
                             <TableCell>Subscription</TableCell>
@@ -47,6 +61,7 @@ export default function UserTable({ rows, totalPages, page, onPageChange, onActi
                                 <TableRow key={row.id} hover>
                                     <TableCell sx={{ fontWeight: 500 }}>{row.name}</TableCell>
                                     <TableCell>{row.email}</TableCell>
+                                    <TableCell>{formatJoinDate(row.createdAt)}</TableCell>
                                     <TableCell>
                                         <Chip
                                             label={row.role}
@@ -91,7 +106,7 @@ export default function UserTable({ rows, totalPages, page, onPageChange, onActi
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={7} align="center" sx={{ py: 6, color: "text.secondary" }}>
+                                <TableCell colSpan={8} align="center" sx={{ py: 6, color: "text.secondary" }}>
                                     No users found matching the current filters.
                                 </TableCell>
                             </TableRow>

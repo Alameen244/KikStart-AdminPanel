@@ -3,13 +3,43 @@
 import { axiosInstance } from "../../helper/helper.js";
 import { subscriptionEndpoints } from "../EndPoints/subsciptionEndpoints.js";
 
-export const getAdminUsersSummary = async (page = 1) => {
-    const res = await axiosInstance.get(`${subscriptionEndpoints.GET_USERS_SUMMARY}?page=${page}`);
+
+export const getAdminUsersSummary = async ({
+    page = 1,
+    plan = "",
+    subscriptionStatus = "",
+    transactionStatus = "",
+    sortBy = "totalPaid",
+    sortOrder = "desc",
+    exportAll = false,
+} = {}) => {
+    const params = new URLSearchParams();
+    params.append("page", page);
+    if (plan)                params.append("plan", plan);
+    if (subscriptionStatus)  params.append("subscriptionStatus", subscriptionStatus);
+    if (transactionStatus)   params.append("transactionStatus", transactionStatus);
+    if (sortBy)              params.append("sortBy", sortBy);
+    if (sortOrder)           params.append("sortOrder", sortOrder);
+    if (exportAll)           params.append("exportAll", "true");
+
+    const res = await axiosInstance.get(
+        `${subscriptionEndpoints.GET_USERS_SUMMARY}?${params.toString()}`
+    );
     return res?.data;
 };
 
-export const getAdminUserTransactions = async ({ userId, page = 1 }) => {
-    const res = await axiosInstance.get(`${subscriptionEndpoints.GET_USER_TRANSACTIONS(userId)}?page=${page}`);
+export const getAdminUserTransactions = async ({
+    userId,
+    page = 1,
+    exportAll = false,
+} = {}) => {
+    const params = new URLSearchParams();
+    params.append("page", page);
+    if (exportAll) params.append("exportAll", "true");
+
+    const res = await axiosInstance.get(
+        `${subscriptionEndpoints.GET_USER_TRANSACTIONS(userId)}?${params.toString()}`
+    );
     return res?.data;
 };
 

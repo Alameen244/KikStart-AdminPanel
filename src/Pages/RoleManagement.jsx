@@ -3,37 +3,20 @@ import {
   Alert,
   Box,
   Button,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControl,
-  IconButton,
+  InputAdornment,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   TextField,
   Typography,
 } from "@mui/material";
-import {
-  Add,
-  DeleteOutline,
-  Launch,
-  PersonAddAlt1,
-  RemoveRedEye,
-} from "@mui/icons-material";
-import { styled } from "@mui/material/styles";
+import { PersonAddAlt1, Search } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+
+// ── API imports (fix paths to match your project) ──────────────────────────
 import {
   assignPermissionRoleToSubAdmin,
   createSubAdmin,
@@ -41,24 +24,32 @@ import {
   getSubAdmins,
 } from "../Apis/AuthApis/authApis";
 import { getRoles } from "../Apis/RolePermissionApis/rolePermissionApi";
-import { toast } from "react-toastify";
 
-const titleize = (value = "") =>
-  value.replace(/\b\w/g, (char) => char.toUpperCase());
+// ── Local components ────────────────────────────────────────────────────────
+import SubAdminTable from "../Components/RoleManagementPageComponents/Subadmintable";
+import AssignRoleDialog from "../Components/RoleManagementPageComponents/Assignroledialog";
+import CreateUserDialog from "../Components/RoleManagementPageComponents/Createuserdialog ";
+import ViewUserDialog from "../Components/RoleManagementPageComponents/Viewuserdialog ";
+import { FilterRow, HeaderRow, PageShell, StateCard } from "../Components/RoleManagementPageComponents/styled";
+import { titleize } from "../Components/RoleManagementPageComponents/utils";
 
 export default function RoleManagement() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // ── Dialog / selection state ───────────────────────────────────────────
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [readDialogOpen, setReadDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedRoleId, setSelectedRoleId] = useState("");
-  const [createUserForm, setCreateUserForm] = useState({
-    name: "",
-    email: "",
-  });
+  const [createForm, setCreateForm] = useState({ name: "", email: "" });
 
+  // ── Filter state ───────────────────────────────────────────────────────
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterRoleId, setFilterRoleId] = useState(""); // "" = All Roles
+
+  // ── Queries ────────────────────────────────────────────────────────────
   const subAdminsQuery = useQuery({
     queryKey: ["subadmins"],
     queryFn: getSubAdmins,
@@ -72,44 +63,48 @@ export default function RoleManagement() {
   const subAdmins = Array.isArray(subAdminsQuery.data?.data)
     ? subAdminsQuery.data.data
     : [];
-  const roles = Array.isArray(rolesQuery.data?.data) ? rolesQuery.data.data : [];
+  const roles = Array.isArray(rolesQuery.data?.data)
+    ? rolesQuery.data.data
+    : [];
 
+  // ── Mutations ──────────────────────────────────────────────────────────
   const createSubAdminMutation = useMutation({
     mutationFn: createSubAdmin,
-    onSuccess: async (response) => {
-      toast.success(response?.message || "Subadmin created successfully.");
+    onSuccess: async (res) => {
+      toast.success(res?.message || "Subadmin created successfully.");
       await queryClient.invalidateQueries({ queryKey: ["subadmins"] });
       setCreateDialogOpen(false);
-      setCreateUserForm({ name: "", email: "" });
+      setCreateForm({ name: "", email: "" });
     },
-    onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to create subadmin.");
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Failed to create subadmin.");
     },
   });
 
   const assignRoleMutation = useMutation({
     mutationFn: assignPermissionRoleToSubAdmin,
-    onSuccess: async (response) => {
-      toast.success(response?.message || "Role assigned successfully.");
+    onSuccess: async (res) => {
+      toast.success(res?.message || "Role assigned successfully.");
       await queryClient.invalidateQueries({ queryKey: ["subadmins"] });
       handleCloseAssignDialog();
     },
-    onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to assign role.");
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Failed to assign role.");
     },
   });
 
   const deleteSubAdminMutation = useMutation({
     mutationFn: deleteSubAdminById,
-    onSuccess: async (response) => {
-      toast.success(response?.message || "Subadmin deleted successfully.");
+    onSuccess: async (res) => {
+      toast.success(res?.message || "Subadmin deleted successfully.");
       await queryClient.invalidateQueries({ queryKey: ["subadmins"] });
     },
-    onError: (error) => {
-      toast.error(error?.response?.data?.message || "Failed to delete subadmin.");
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Failed to delete subadmin.");
     },
   });
 
+  // ── Derived: normalised rows ───────────────────────────────────────────
   const rows = useMemo(
     () =>
       subAdmins.map((user, index) => ({
@@ -123,8 +118,7 @@ export default function RoleManagement() {
         permissionCount: Array.isArray(user?.permissionRole?.permissions)
           ? user.permissionRole.permissions.reduce(
               (count, item) =>
-                count +
-                Object.values(item.actions || {}).filter(Boolean).length,
+                count + Object.values(item.actions || {}).filter(Boolean).length,
               0,
             )
           : 0,
@@ -132,6 +126,33 @@ export default function RoleManagement() {
     [subAdmins],
   );
 
+  // ── Derived: filtered rows ─────────────────────────────────────────────
+  const filteredRows = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return rows.filter((user) => {
+      const matchesSearch =
+        !query ||
+        user.name.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query);
+      const matchesRole = !filterRoleId || user.assignedRoleId === filterRoleId;
+      return matchesSearch && matchesRole;
+    });
+  }, [rows, searchQuery, filterRoleId]);
+
+  // ── Derived: roles present in table (for filter dropdown) ─────────────
+  const assignedRoleOptions = useMemo(() => {
+    const seen = new Set();
+    const options = [];
+    rows.forEach((user) => {
+      if (user.assignedRoleId && !seen.has(user.assignedRoleId)) {
+        seen.add(user.assignedRoleId);
+        options.push({ id: user.assignedRoleId, name: user.assignedRoleName });
+      }
+    });
+    return options.sort((a, b) => a.name.localeCompare(b.name));
+  }, [rows]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────
   const handleOpenAssignDialog = (user) => {
     setSelectedUser(user);
     setSelectedRoleId(user?.assignedRoleId || "");
@@ -144,20 +165,13 @@ export default function RoleManagement() {
     setSelectedRoleId("");
   };
 
-  const handleOpenReadDialog = (user) => {
+  const handleOpenViewDialog = (user) => {
     setSelectedUser(user);
-    setReadDialogOpen(true);
+    setViewDialogOpen(true);
   };
 
-  const handleCreateRole = () => {
-    navigate("/permissions", { state: { tab: "create" } });
-  };
-
-  const handleSubmitCreateUser = () => {
-    createSubAdminMutation.mutate({
-      name: createUserForm.name.trim(),
-      email: createUserForm.email.trim(),
-    });
+  const handleFormChange = (field, value) => {
+    setCreateForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAssignRole = () => {
@@ -168,8 +182,18 @@ export default function RoleManagement() {
     });
   };
 
+  const handleSubmitCreate = () => {
+    createSubAdminMutation.mutate({
+      name: createForm.name.trim(),
+      email: createForm.email.trim(),
+    });
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────
   return (
     <PageShell>
+
+      {/* Header */}
       <HeaderRow>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700, color: "dark.main", mb: 1 }}>
@@ -197,277 +221,99 @@ export default function RoleManagement() {
         </Button>
       </HeaderRow>
 
-      {subAdminsQuery.isError || rolesQuery.isError ? (
+      {/* Search + Role filter */}
+      <FilterRow>
+        <TextField
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name or email…"
+          size="small"
+          sx={{ flex: 1, minWidth: 220 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search sx={{ color: "semiDark.main", fontSize: 20 }} />
+              </InputAdornment>
+            ),
+            sx: { borderRadius: 3 },
+          }}
+        />
+
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="role-filter-label">Filter by Role</InputLabel>
+          <Select
+            labelId="role-filter-label"
+            label="Filter by Role"
+            value={filterRoleId}
+            onChange={(e) => setFilterRoleId(e.target.value)}
+            sx={{ borderRadius: 3 }}
+          >
+            <MenuItem value="">All Roles</MenuItem>
+            {assignedRoleOptions.map((role) => (
+              <MenuItem key={role.id} value={role.id}>
+                {titleize(role.name)}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </FilterRow>
+
+      {/* Error state */}
+      {(subAdminsQuery.isError || rolesQuery.isError) && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {subAdminsQuery.error?.response?.data?.message ||
             rolesQuery.error?.response?.data?.message ||
             "Failed to load role management data."}
         </Alert>
-      ) : null}
+      )}
 
+      {/* Loading / Table */}
       {subAdminsQuery.isLoading ? (
         <StateCard>
           <Typography>Loading subadmins...</Typography>
         </StateCard>
       ) : (
-        <TableCard elevation={0}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <HeaderCell>S No</HeaderCell>
-                  <HeaderCell>User Name</HeaderCell>
-                  <HeaderCell>Email</HeaderCell>
-                  <HeaderCell>Role</HeaderCell>
-                  <HeaderCell align="center">Enable</HeaderCell>
-                  <HeaderCell align="center">Actions</HeaderCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {rows.length > 0 ? (
-                  rows.map((user) => (
-                    <BodyRow key={user.id}>
-                      <BodyCell>{user.serial}</BodyCell>
-                      <BodyCell>{user.name}</BodyCell>
-                      <BodyCell>{user.email}</BodyCell>
-                      <BodyCell>
-                        {user.assignedRoleName ? (
-                          <RoleCellButton type="button" onClick={() => handleOpenAssignDialog(user)}>
-                            <Typography sx={{ fontWeight: 700, color: "myRed.main" }}>
-                              {titleize(user.assignedRoleName)}
-                            </Typography>
-                          </RoleCellButton>
-                        ) : (
-                          <AssignIconButton onClick={() => handleOpenAssignDialog(user)}>
-                            <Add />
-                          </AssignIconButton>
-                        )}
-                      </BodyCell>
-                      <BodyCell align="center">
-                        <Checkbox checked={user.enabled} disableRipple />
-                      </BodyCell>
-                      <BodyCell align="center">
-                        <ActionStack>
-                          <IconButton onClick={() => handleOpenReadDialog(user)}>
-                            <RemoveRedEye />
-                          </IconButton>
-                          <IconButton
-                            color="error"
-                            onClick={() => deleteSubAdminMutation.mutate(user.id)}
-                            disabled={deleteSubAdminMutation.isPending}
-                          >
-                            <DeleteOutline />
-                          </IconButton>
-                        </ActionStack>
-                      </BodyCell>
-                    </BodyRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <BodyCell colSpan={6} align="center">
-                      No subadmins found.
-                    </BodyCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </TableCard>
+        <SubAdminTable
+          rows={filteredRows}
+          searchQuery={searchQuery}
+          filterRoleId={filterRoleId}
+          isDeleting={deleteSubAdminMutation.isPending}
+          onOpenAssign={handleOpenAssignDialog}
+          onOpenRead={handleOpenViewDialog}
+          onDelete={(id) => deleteSubAdminMutation.mutate(id)}
+        />
       )}
 
-      <Dialog open={assignDialogOpen} onClose={handleCloseAssignDialog} maxWidth="xs" fullWidth>
-        <DialogTitle>Assign Role</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2.5} sx={{ pt: 1 }}>
-            <Typography sx={{ color: "semiDark.main" }}>
-              {selectedUser?.name || "User"} can be assigned one of the existing roles.
-            </Typography>
+      {/* Dialogs */}
+      <AssignRoleDialog
+        open={assignDialogOpen}
+        onClose={handleCloseAssignDialog}
+        selectedUser={selectedUser}
+        selectedRoleId={selectedRoleId}
+        onRoleChange={setSelectedRoleId}
+        roles={roles}
+        isAssigning={assignRoleMutation.isPending}
+        onAssign={handleAssignRole}
+        onNavigateCreate={() =>
+          navigate("/permissions", { state: { tab: "create" } })
+        }
+      />
 
-            <FormControl fullWidth>
-              <InputLabel id="assign-role-label">Existing Role</InputLabel>
-              <Select
-                labelId="assign-role-label"
-                label="Existing Role"
-                value={selectedRoleId}
-                onChange={(event) => setSelectedRoleId(event.target.value)}
-              >
-                {roles.map((role) => (
-                  <MenuItem key={role._id} value={role._id}>
-                    {titleize(role.name)}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+      <CreateUserDialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        form={createForm}
+        onFormChange={handleFormChange}
+        isCreating={createSubAdminMutation.isPending}
+        onSubmit={handleSubmitCreate}
+      />
 
-            <Button
-              variant="text"
-              startIcon={<Launch />}
-              onClick={handleCreateRole}
-              sx={{
-                alignSelf: "flex-start",
-                color: "myRed.main",
-                fontWeight: 700,
-                textTransform: "none",
-              }}
-            >
-              Create Role
-            </Button>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAssignDialog}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleAssignRole}
-            disabled={!selectedRoleId || assignRoleMutation.isPending}
-            sx={{
-              backgroundColor: "myRed.main",
-              textTransform: "none",
-              fontWeight: 700,
-            }}
-          >
-            {assignRoleMutation.isPending ? "Assigning..." : "Assign"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <ViewUserDialog
+        open={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        user={selectedUser}
+      />
 
-      <Dialog open={createDialogOpen} onClose={() => setCreateDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create User</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2.5} sx={{ pt: 1 }}>
-            <TextField
-              fullWidth
-              label="Name"
-              value={createUserForm.name}
-              onChange={(event) =>
-                setCreateUserForm((prev) => ({ ...prev, name: event.target.value }))
-              }
-            />
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={createUserForm.email}
-              onChange={(event) =>
-                setCreateUserForm((prev) => ({ ...prev, email: event.target.value }))
-              }
-            />
-            <Typography sx={{ color: "semiDark.main" }}>
-              Password will be auto-generated and sent to the user by email. Every new user from here is created as a subadmin.
-            </Typography>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleSubmitCreateUser}
-            disabled={
-              !createUserForm.name.trim() ||
-              !createUserForm.email.trim() ||
-              createSubAdminMutation.isPending
-            }
-            sx={{
-              backgroundColor: "myRed.main",
-              textTransform: "none",
-              fontWeight: 700,
-            }}
-          >
-            {createSubAdminMutation.isPending ? "Creating..." : "Create User"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={readDialogOpen} onClose={() => setReadDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>User Details</DialogTitle>
-        <DialogContent>
-          <Stack spacing={1.5} sx={{ pt: 1 }}>
-            <Typography><strong>Name:</strong> {selectedUser?.name || "N/A"}</Typography>
-            <Typography><strong>Email:</strong> {selectedUser?.email || "N/A"}</Typography>
-            <Typography>
-              <strong>Assigned Role:</strong> {selectedUser?.assignedRoleName ? titleize(selectedUser.assignedRoleName) : "Not assigned"}
-            </Typography>
-            <Typography><strong>Permissions:</strong> {selectedUser?.permissionCount || 0}</Typography>
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setReadDialogOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
     </PageShell>
   );
 }
-
-const PageShell = styled(Box)({
-  maxWidth: "1280px",
-  margin: "0 auto",
-});
-
-const HeaderRow = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 20,
-  marginBottom: 24,
-  [theme.breakpoints.down("md")]: {
-    flexDirection: "column",
-    alignItems: "stretch",
-  },
-}));
-
-const TableCard = styled(Paper)(() => ({
-  borderRadius: 24,
-  border: "1px solid rgba(43, 43, 43, 0.08)",
-  boxShadow: "0 18px 40px rgba(43, 43, 43, 0.06)",
-  overflow: "hidden",
-}));
-
-const HeaderCell = styled(TableCell)(() => ({
-  fontWeight: 700,
-  color: "#2B2B2B",
-  backgroundColor: "rgba(237, 28, 36, 0.06)",
-  borderBottom: "1px solid rgba(43, 43, 43, 0.08)",
-}));
-
-const BodyRow = styled(TableRow)(() => ({
-  "&:hover": {
-    backgroundColor: "rgba(237, 28, 36, 0.03)",
-  },
-}));
-
-const BodyCell = styled(TableCell)(() => ({
-  borderBottom: "1px solid rgba(43, 43, 43, 0.08)",
-  color: "#2B2B2B",
-}));
-
-const AssignIconButton = styled(IconButton)(() => ({
-  width: 34,
-  height: 34,
-  borderRadius: 10,
-  border: "1px dashed rgba(237, 28, 36, 0.5)",
-  color: "#ED1C24",
-}));
-
-const RoleCellButton = styled("button")(() => ({
-  border: "none",
-  background: "rgba(237, 28, 36, 0.06)",
-  borderRadius: 999,
-  padding: "8px 14px",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 8,
-  cursor: "pointer",
-}));
-
-const ActionStack = styled(Box)(() => ({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-}));
-
-const StateCard = styled(Paper)(() => ({
-  padding: 24,
-  borderRadius: 20,
-  textAlign: "center",
-}));

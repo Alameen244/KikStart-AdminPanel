@@ -25,7 +25,8 @@ import {
   AdminPanelSettings,
   ManageAccounts,
   CreditScore,
-  QueryStats
+  QueryStats,
+  SportsGymnastics,
 } from "@mui/icons-material";
 import { Link, useLocation } from "react-router-dom";
 import { styled } from "@mui/material/styles";
@@ -133,7 +134,7 @@ export default function Sidebar() {
           </ListItemButton>
         </ListItem>
 
-         <Collapse in={contentOpen} timeout="auto" unmountOnExit>
+        <Collapse in={contentOpen} timeout="auto" unmountOnExit>
           <List component="div" disablePadding sx={{ pl: 4 }}>
             {pages.map((page) => (
               <ListItem key={page.path} disablePadding>
@@ -192,7 +193,6 @@ export default function Sidebar() {
           </ListItemButton>
         </ListItem>
 
-
         {/* revenue breakdown */}
 
         <ListItem disablePadding>
@@ -247,6 +247,31 @@ export default function Sidebar() {
             />
           </ListItemButton>
         </ListItem>
+
+        {/* Coach Management */}
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/coaches"
+            className={isActive("/coaches") ? "active" : ""}
+          >
+            <ListItemIcon
+              sx={{ color: isActive("/coaches") ? "activeSidebar" : "white" }}
+            >
+              <SportsGymnastics />
+            </ListItemIcon>
+            <ListItemText
+              primary="Coach Management"
+              sx={{
+                "& .MuiListItemText-primary": {
+                  color: isActive("/coaches") ? "activeSidebar" : "white",
+                  fontWeight: isActive("/coaches") ? 600 : 400,
+                },
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+
         {/* // permissions */}
         <ListItem disablePadding>
           <ListItemButton

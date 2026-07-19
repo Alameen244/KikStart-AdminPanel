@@ -24,6 +24,7 @@ import RoleManagement from "./Pages/RoleManagement";
 import NotFoundPage from "../../frontEnd/src/Pages/404notFound";
 import Subscription from "./Pages/Subscription";
 import RevenueBreakdown from "./Pages/RevenueBreakdown";
+import CoachManagement from "./Pages/CoachManagement";
 
 function App() {
   return (
@@ -60,6 +61,14 @@ function App() {
                 element={
                   <PermissionGuard moduleName="User Management">
                     <UserManagement />
+                  </PermissionGuard>
+                }
+              />
+              <Route
+                path="coaches"
+                element={
+                  <PermissionGuard moduleName="Coach Management">
+                    <CoachManagement />
                   </PermissionGuard>
                 }
               />
